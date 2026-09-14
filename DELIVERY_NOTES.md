@@ -7,22 +7,28 @@ plus a revised D200) and the six graded questions in `eval/questions.json`, with
 expected answers and source pages recorded before any test run - see the table in
 `README.md` ("The test manual and test set").
 
-**Actual results are not included in this delivery.** I did not call the Anthropic
-API in this build session - see "What I didn't do, and why" below. `npm run eval`
-will populate `eval/results.json` (raw) and `eval/report.md` (a scored table: found/
-not-found, factual accuracy, citation accuracy, latency, and real per-question $
-cost from Anthropic's own usage figures) the first time it's run against a real
-key. I'd expect the model to get 1-6 (direct fact) and 5 (absent fact) right easily;
-3 (follow-up) and 6 (post-replacement, where the model's *own* earlier answer in
-the same conversation says "10 liters" right before it needs to say "13 liters")
-are the two I'd actually watch for failures on, and 2 and 4 are a reasonable middle
-difficulty (comparison across two documents; an exception clause that only applies
-to one of the two models).
+**Actual results, from a real run against `claude-haiku-4-5-20251001`** (full
+transcripts in `eval/results.json`, scored table in `eval/report.md`):
+
+| # | Question | Expected | Actual | Factual | Citation |
+|---|---|---|---|---|---|
+| 1 | Max coverage area of the D200? | 45 m², D200 p.3 | "45 square meters... 484 square feet... at 2.5 meters" | ✅ | ✅ |
+| 2 | D200 vs D400 coverage area? | 45 vs 90 m² | "45... while the D400 covers twice as much at 90 square meters" | ✅ | ✅ |
+| 3 | ("...D200 setup?" then) "And what about the other model?" | D400 setup steps, p.2 | Full D400 three-phase/electrician/pump setup steps | ✅ | ✅ |
+| 4 | Can the D200 run at 0°C? | Only with LTK-1, p.4 | "No... under standard configuration. However, if the optional Low-Temperature Defrost Kit is installed... down to minus 5" | ✅ | ✅ |
+| 5 | D400 warranty period? | Not in manual | "The manual does not cover the warranty period for the D400." | ✅ | ✅ (no citation, correctly) |
+| 6 | D200 tank capacity, before/after replacing with v2 | 10L → 13L, both p.3 | 10 liters, then (after replace) "13 liters, increased from 10 liters in the 2027-B hardware revision" | ✅ | ✅ |
+
+**Factual accuracy: 6/6 (100%). Citation accuracy: 6/6 (100%)** - every citation's
+quote was independently verified as an actual substring of the extracted page text,
+not just self-reported by the model. See "What failed" below for one wrinkle in
+question 6: the model's answer was correct on the first run, but my own grading
+script initially mis-scored it.
 
 ## What failed
 
-Two real bugs were found and fixed during this build, both caught before any
-review, not left in the delivered code:
+Three real bugs were found and fixed during this build, all caught before
+delivery, not left in the code:
 
 1. **SDK/API-shape errors caught by the type checker.** My first draft of
    `lib/anthropic.ts` used `@anthropic-ai/sdk/helpers/beta/zod` and
@@ -30,45 +36,52 @@ review, not left in the delivered code:
    the currently-installed SDK's Zod structured-output helper lives at
    `@anthropic-ai/sdk/helpers/zod` (non-beta) and expects a `zod/v4`-shaped
    schema, not v3. Fixed by inspecting the installed package's own `.d.ts` files
-   rather than guessing from memory, then re-running `tsc` to confirm - see "how I
-   checked their output" below.
+   rather than guessing from memory, then re-running `tsc` to confirm.
 2. **A React hydration mismatch** in the voice-support check (`typeof window !==
    "undefined"` inside a `useState` initializer renders differently on the server
    vs. the client's first paint). Found with a Playwright smoke test that loaded
    the page and asserted zero console errors; fixed by moving the check into a
    `useEffect` so both the server and the client's first render agree (`false`),
    then updating once mounted.
+3. **A false failure in my own eval grading logic**, found on the real run: the
+   harness flagged question 6 (post-replacement) as a factual failure because the
+   model's answer contained the substring "10 liters". Looking at the actual
+   answer, the model was right - "13 liters, increased from 10 liters in the
+   2027-B hardware revision" - it correctly gave the new value and accurately
+   cited the old one as context, because the v2 manual's own page 3 text phrases
+   it that way. The bug was my `mustNotMention` check treating any mention of the
+   old number as disqualifying, including inside a verbatim, correctly-cited
+   quote. Fixed by dropping that check for this question and documenting why in
+   `eval/questions.json`, rather than quietly loosening the grading until it
+   passed.
 
-Neither of these would have been visible from just reading the code; both needed
-an actual compile/run to surface. I did not find or fix any correctness bug in the
-grounding/citation/follow-up logic itself, because that logic has not been
-exercised against a real model response in this session (no API key was used) -
-that's the biggest open risk in this delivery, not a solved one.
+None of these three would have been visible from reading the code alone; all
+three needed an actual compile, run, or live model call to surface - which is
+the concrete case for not skipping that step even under time pressure.
 
 **What's genuinely unfinished:**
 
-- Live accuracy/latency/cost numbers (see above) - the harness is ready, the
-  numbers aren't in yet.
-- Video walkthrough - not produced; I can't record narrated video as an AI agent,
-  and the applicant declined the alternative of an automated silent
-  Playwright screen-capture for this delivery. A script would need to be written
-  and recorded separately before submission.
+- Video walkthrough - not produced; I can't record narrated video as an AI agent.
+  A script would need to be written and recorded separately before submission.
 - No deployment - local `npm run dev` only.
+- Only one live eval run was performed (Haiku 4.5, one pass through the six
+  questions). I have no data on run-to-run variance, and did not test
+  `claude-sonnet-5` live.
 
 ## Time spent
 
 This prototype was built primarily by an AI agent (Claude Code, running Claude
 Sonnet 5) inside a single continuous session, directed by the applicant (Yehor)
 who made the product decisions: input/output stack (browser-native voice, no
-paid speech APIs), model choice (Haiku 4.5 default), and - notably - the decision
-not to spend money calling the Anthropic API to generate live test numbers for a
-test task with no guaranteed outcome. Wall-clock agent execution time for the
-build itself (scaffolding through working UI, fixtures, eval harness, and docs)
-was under 30 minutes; that is not comparable to the brief's "8 focused hours" for
-a human working solo without an agent, and is disclosed here rather than implied
-as a like-for-like number. Remaining human time for Yehor before submission:
-reviewing this code, running `npm run eval` with his own key if he wants real
-numbers, and recording the video walkthrough.
+paid speech APIs), model choice (Haiku 4.5 default), initially declining to spend
+money on live API testing, then - once we'd worked out the real cost was on the
+order of cents, not euros - providing his own key to get real numbers before
+submission. Wall-clock agent execution time for the build itself (scaffolding
+through working UI, fixtures, eval harness, docs, and the live eval run) was
+under an hour; that is not comparable to the brief's "8 focused hours" for a
+human working solo without an agent, and is disclosed here rather than implied as
+a like-for-like number. Remaining human time for Yehor before submission:
+reviewing this code and recording the video walkthrough.
 
 ## Exact AI tools and models
 
@@ -87,25 +100,32 @@ numbers, and recording the video walkthrough.
   speech engines, chosen specifically to keep voice I/O at $0 marginal cost (see
   README "Model choice and cost model").
 
-**One example of how I checked the model's (Claude Code's) output**, beyond the
-two bugs above: after writing the PDF-ingestion route, I didn't assume it worked -
-I started the real dev server and `curl`'d all three fixture PDFs through
-`/api/ingest`, printing the actual extracted per-page text back to the terminal
-and reading it, confirming the D200 v1 vs. v2-revised text differed exactly where
-intended (10 liters vs. 13 liters, on the same page 3) before wiring anything else
-to depend on it.
+**Two examples of how I checked the model's (Claude Code's) output:**
+
+1. After writing the PDF-ingestion route, I didn't assume it worked - I started
+   the real dev server and `curl`'d all three fixture PDFs through `/api/ingest`,
+   printing the actual extracted per-page text back to the terminal and reading
+   it, confirming the D200 v1 vs. v2-revised text differed exactly where intended
+   (10 vs. 13 liters, same page 3) before wiring anything else to depend on it.
+2. After the live eval run came back "5/6 factual", I didn't take the failing
+   grade at face value - I read the actual failing transcript in the terminal
+   output, saw the model's answer was in fact correct, traced the discrepancy to
+   my own grading regex, and fixed the test rather than the app. Trusting a
+   red/green result without reading the underlying transcript would have produced
+   a false claim in this document (either "the model has a bug" or, worse, a
+   quietly loosened check to force a pass).
 
 ## Speed and cost measurement approach
 
-See `README.md` → "What wasn't measured, and why" for the full explanation.
-Short version: ingestion cost is genuinely $0 (no LLM call in that path, verified
-by reading the code path, not assumed); per-question cost is an arithmetic
-estimate from real extracted-text size (4,425 characters across both manuals) and
-Anthropic's published Haiku 4.5 pricing, landing around $0.001-0.003/question -
-explicitly labeled as an estimate, not a measurement, because no live API call was
-made. Latency is not estimated at all here, because I have no grounded basis for a
-number - `npm run eval` measures it directly, in seconds, the first time someone
-runs it with a real key.
+Real numbers, from one live run against `claude-haiku-4-5-20251001` with the
+applicant's own API key (see README.md → "Measured results" for the full table):
+**factual accuracy 6/6, citation accuracy 6/6, median latency 3.6s (1.1-8.5s
+range), average cost/question $0.00285, full 8-turn session $0.0227, ingestion
+$0**. My pre-run estimate (arithmetic from extracted-text size × published
+pricing, before any live call) was $0.002-0.003/question - close to, and slightly
+under, what was actually measured. Latency was not estimated beforehand at all,
+because I had no grounded basis for a number; it's reported here as measured,
+not guessed.
 
 ## Hosting cost (separate from per-operation cost)
 

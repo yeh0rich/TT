@@ -1,0 +1,281 @@
+{
+  "summary": {
+    "model": "claude-haiku-4-5-20251001",
+    "questionsGraded": 6,
+    "questionsTotal": 8,
+    "factualAccuracy": 1,
+    "citationAccuracy": 1,
+    "ingestion": {
+      "d200_v1": {
+        "pages": 4,
+        "serverIngestMs": 12,
+        "wallMs": 23
+      },
+      "d200_v2": {
+        "pages": 4,
+        "serverIngestMs": 13,
+        "wallMs": 24
+      },
+      "d400_v1": {
+        "pages": 4,
+        "serverIngestMs": 10,
+        "wallMs": 18
+      }
+    },
+    "medianQuestionLatencyMs": 3569,
+    "minQuestionLatencyMs": 1050,
+    "maxQuestionLatencyMs": 8510,
+    "totalCostUsd": 0.022718999999999996,
+    "gradedCostUsd": 0.017092999999999997,
+    "avgCostPerQuestionUsd": 0.002848833333333333
+  },
+  "results": [
+    {
+      "id": "q1_direct_fact",
+      "graded": true,
+      "question": "What is the maximum coverage area of the D200?",
+      "answer": {
+        "found": true,
+        "spokenAnswer": "The maximum coverage area of the D200 is 45 square meters, which is about 484 square feet, at a ceiling height of 2.5 meters.",
+        "citations": [
+          {
+            "manual": "TerraDry D200",
+            "page": 3,
+            "quote": "Maximum coverage area: 45 square meters (484 sq ft) at 2.5m ceiling height.",
+            "verified": true
+          }
+        ],
+        "usage": {
+          "inputTokens": 2142,
+          "outputTokens": 102,
+          "cacheCreationInputTokens": 0,
+          "cacheReadInputTokens": 0
+        },
+        "costUsd": 0.002652,
+        "model": "claude-haiku-4-5-20251001",
+        "latencyMs": 3554
+      },
+      "wallMs": 3569,
+      "grade": {
+        "factualCorrect": true,
+        "citationCorrect": true,
+        "allCitationsVerified": true
+      }
+    },
+    {
+      "id": "q2_comparison",
+      "graded": true,
+      "question": "How does the maximum coverage area of the D200 compare to the D400?",
+      "answer": {
+        "found": true,
+        "spokenAnswer": "The D200 covers a maximum of 45 square meters at 2.5 meter ceiling height, while the D400 covers 90 square meters at 3 meter ceiling height. The D400 has roughly twice the coverage area of the D200.",
+        "citations": [
+          {
+            "manual": "TerraDry D200",
+            "page": 3,
+            "quote": "Maximum coverage area: 45 square meters (484 sq ft) at 2.5m ceiling height.",
+            "verified": true
+          },
+          {
+            "manual": "TerraDry D400",
+            "page": 3,
+            "quote": "Maximum coverage area: 90 square meters (969 sq ft) at 3m ceiling height.",
+            "verified": true
+          }
+        ],
+        "usage": {
+          "inputTokens": 2148,
+          "outputTokens": 166,
+          "cacheCreationInputTokens": 0,
+          "cacheReadInputTokens": 0
+        },
+        "costUsd": 0.002978,
+        "model": "claude-haiku-4-5-20251001",
+        "latencyMs": 1772
+      },
+      "wallMs": 1783,
+      "grade": {
+        "factualCorrect": true,
+        "citationCorrect": true,
+        "allCitationsVerified": true
+      }
+    },
+    {
+      "id": "q3a_setup_context",
+      "graded": false,
+      "question": "What are the setup steps for the D200?",
+      "answer": {
+        "found": true,
+        "spokenAnswer": "The D200 setup involves placing the unit on a level floor with 30 centimeters clearance on all sides, connecting it to a grounded single-phase 220 to 240 volt outlet using no extension cord longer than 3 meters, attaching a 12 millimeter condensate drain hose to the rear drain port or leaving the internal tank installed, pressing and holding the power button for 2 seconds to turn on, and then selecting your target humidity between 30 and 80 percent using the dial and pressing start. The unit will begin dehumidifying within about 90 seconds.",
+        "citations": [
+          {
+            "manual": "TerraDry D200",
+            "page": 2,
+            "quote": "1. Place the unit on a level, hard floor with at least 30 cm of clearance on all sides.\n2. Connect the unit to a grounded single-phase 220-240V, 10A outlet. Do not use an extension cord longer than 3 meters.\n3. Attach the supplied 12mm condensate drain hose to the rear drain port for continuous drainage, or leave the internal tank installed for manual emptying.\n4. Press and hold the POWER button for 2 seconds to power on.\n5. Select the target humidity (30 percent to 80 percent RH) using the dial and press START. The unit will begin dehumidifying within approximately 90 seconds.",
+            "verified": true
+          }
+        ],
+        "usage": {
+          "inputTokens": 2141,
+          "outputTokens": 330,
+          "cacheCreationInputTokens": 0,
+          "cacheReadInputTokens": 0
+        },
+        "costUsd": 0.003791,
+        "model": "claude-haiku-4-5-20251001",
+        "latencyMs": 8502
+      },
+      "wallMs": 8510,
+      "grade": null
+    },
+    {
+      "id": "q3b_followup",
+      "graded": true,
+      "question": "And what about the other model?",
+      "answer": {
+        "found": true,
+        "spokenAnswer": "The D400 setup involves positioning the unit on a level floor with 60 centimeters clearance on all sides, having a licensed electrician connect it to a grounded three-phase 380 to 415 volt supply with a dedicated circuit breaker, connecting the built-in condensate pump's discharge tube to a drain point up to 5 meters vertically, powering on via the main isolator switch and then pressing power on the control panel, and setting your target humidity between 30 and 80 percent via the touchscreen before pressing start. The unit then performs a 3-minute self-test before beginning dehumidification.",
+        "citations": [
+          {
+            "manual": "TerraDry D400",
+            "page": 2,
+            "quote": "1. Position the unit on a level, hard floor with at least 60 cm clearance on all sides for airflow. 2. Have a licensed electrician connect the unit to a grounded three-phase 380-415V, 16A supply. A dedicated circuit breaker is required. 3. Connect the built-in condensate pump's 8mm discharge tube to a drain point up to 5 meters vertically; continuous drainage is mandatory (there is no internal tank). 4. Power on via the main isolator switch, then press POWER on the control panel. 5. Set the target humidity (30 percent to 80 percent RH) via the touchscreen and press START. The unit performs a 3-minute self-test before beginning dehumidification.",
+            "verified": true
+          }
+        ],
+        "usage": {
+          "inputTokens": 2286,
+          "outputTokens": 351,
+          "cacheCreationInputTokens": 0,
+          "cacheReadInputTokens": 0
+        },
+        "costUsd": 0.0040409999999999995,
+        "model": "claude-haiku-4-5-20251001",
+        "latencyMs": 4059
+      },
+      "wallMs": 4068,
+      "grade": {
+        "factualCorrect": true,
+        "citationCorrect": true,
+        "allCitationsVerified": true
+      }
+    },
+    {
+      "id": "q4_exception",
+      "graded": true,
+      "question": "Can the D200 be used at an ambient temperature of 0 degrees Celsius?",
+      "answer": {
+        "found": true,
+        "spokenAnswer": "No, the D200 cannot be used at zero degrees Celsius under standard configuration. However, if you install the optional Low-Temperature Defrost Kit certified by a technician, the D200 can operate down to minus five degrees Celsius.",
+        "citations": [
+          {
+            "manual": "TerraDry D200",
+            "page": 4,
+            "quote": "The D200 must not be operated in ambient temperatures below 5C under standard configuration, as this may cause the evaporator coil to frost and the compressor to stall. Exception: if the optional Low-Temperature Defrost Kit (LTK-1) is installed by a certified technician, the D200 may be operated down to -5C ambient temperature.",
+            "verified": true
+          }
+        ],
+        "usage": {
+          "inputTokens": 2150,
+          "outputTokens": 174,
+          "cacheCreationInputTokens": 0,
+          "cacheReadInputTokens": 0
+        },
+        "costUsd": 0.00302,
+        "model": "claude-haiku-4-5-20251001",
+        "latencyMs": 1783
+      },
+      "wallMs": 1791,
+      "grade": {
+        "factualCorrect": true,
+        "citationCorrect": true,
+        "allCitationsVerified": true
+      }
+    },
+    {
+      "id": "q5_absent_fact",
+      "graded": true,
+      "question": "What is the warranty period for the D400?",
+      "answer": {
+        "found": false,
+        "spokenAnswer": "The manual for the TerraDry D400 does not contain information about the warranty period.",
+        "citations": [],
+        "usage": {
+          "inputTokens": 2141,
+          "outputTokens": 39,
+          "cacheCreationInputTokens": 0,
+          "cacheReadInputTokens": 0
+        },
+        "costUsd": 0.002336,
+        "model": "claude-haiku-4-5-20251001",
+        "latencyMs": 2932
+      },
+      "wallMs": 2941,
+      "grade": {
+        "factualCorrect": true,
+        "citationCorrect": true,
+        "allCitationsVerified": true
+      }
+    },
+    {
+      "id": "q6a_before_replace",
+      "graded": false,
+      "question": "What is the internal tank capacity of the D200?",
+      "answer": {
+        "found": true,
+        "spokenAnswer": "The internal tank capacity of the D200 is 10 liters.",
+        "citations": [
+          {
+            "manual": "TerraDry D200",
+            "page": 3,
+            "quote": "Internal tank capacity: 10 liters.",
+            "verified": true
+          }
+        ],
+        "usage": {
+          "inputTokens": 1500,
+          "outputTokens": 67,
+          "cacheCreationInputTokens": 0,
+          "cacheReadInputTokens": 0
+        },
+        "costUsd": 0.001835,
+        "model": "claude-haiku-4-5-20251001",
+        "latencyMs": 1039
+      },
+      "wallMs": 1050,
+      "grade": null
+    },
+    {
+      "id": "q6b_after_replace",
+      "graded": true,
+      "question": "What is the internal tank capacity of the D200?",
+      "answer": {
+        "found": true,
+        "spokenAnswer": "The internal tank capacity of the D200 is 13 liters, increased from 10 liters as of the 2027-B hardware revision.",
+        "citations": [
+          {
+            "manual": "TerraDry D200",
+            "page": 3,
+            "quote": "Internal tank capacity: 13 liters (increased from 10 liters as of the 2027-B hardware revision).",
+            "verified": true
+          }
+        ],
+        "usage": {
+          "inputTokens": 1551,
+          "outputTokens": 103,
+          "cacheCreationInputTokens": 0,
+          "cacheReadInputTokens": 0
+        },
+        "costUsd": 0.002066,
+        "model": "claude-haiku-4-5-20251001",
+        "latencyMs": 4752
+      },
+      "wallMs": 4760,
+      "grade": {
+        "factualCorrect": true,
+        "citationCorrect": true,
+        "allCitationsVerified": true
+      }
+    }
+  ]
+}

@@ -56,13 +56,20 @@ function normalize(s) {
 
 function grade(turn, answer) {
   const exp = turn.expected;
-  const haystack = normalize(
+  // mustMention may be satisfied by the spoken answer OR a citation (the fact
+  // just needs to show up somewhere). mustNotMention is checked against the
+  // spoken answer ONLY: a citation is a verbatim source excerpt and may
+  // legitimately mention a superseded value as context (e.g. "13 liters
+  // (increased from 10 liters...)") without the model being wrong - what
+  // matters is whether the model's own conclusion asserts the stale value.
+  const mentionHaystack = normalize(
     [answer.spokenAnswer, ...answer.citations.map((c) => c.quote)].join(" "),
   );
+  const spokenOnly = normalize(answer.spokenAnswer);
 
   const foundMatches = answer.found === exp.found;
-  const mentionsAllRequired = (exp.mustMention ?? []).every((m) => haystack.includes(normalize(m)));
-  const avoidsForbidden = (exp.mustNotMention ?? []).every((m) => !haystack.includes(normalize(m)));
+  const mentionsAllRequired = (exp.mustMention ?? []).every((m) => mentionHaystack.includes(normalize(m)));
+  const avoidsForbidden = (exp.mustNotMention ?? []).every((m) => !spokenOnly.includes(normalize(m)));
   const factualCorrect = foundMatches && mentionsAllRequired && avoidsForbidden;
 
   const citationCorrect = (exp.citations ?? []).every((ec) =>

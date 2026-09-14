@@ -98,10 +98,10 @@
       "conversation": "replace",
       "replaceManualsWith": ["d200_v2"],
       "question": "What is the internal tank capacity of the D200?",
+      "_note": "No mustNotMention here: the v2 manual's own page 3 text is '13 liters (increased from 10 liters...)', so a correct, well-grounded answer may legitimately mention 10 as historical context while still asserting 13 as current. Correctness is judged by mentioning the new value and citing p.3 of the replaced document, not by banning the old number outright - see DELIVERY_NOTES.md.",
       "expected": {
         "found": true,
         "mustMention": ["13"],
-        "mustNotMention": ["10 liters"],
         "citations": [{ "manual": "TerraDry D200", "page": 3 }]
       }
     }

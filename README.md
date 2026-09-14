@@ -103,29 +103,40 @@ Anthropic returns (`input_tokens`, `output_tokens`, `cache_creation_input_tokens
 `cache_read_input_tokens`) times the table above - that number in the UI and in
 `eval/results.json` is a real per-call cost, not a guess.
 
-### What wasn't measured, and why
+### Measured results
 
-I did not call the Anthropic API during this build - I was asked not to spend the
-applicant's own money on API credits for a test task with no guaranteed outcome,
-which I think is a completely reasonable line to draw. That means:
+The build itself didn't call the Anthropic API - no reason to spend money testing
+a repo that might still change. Once the core flow was done, I ran the real thing
+against `claude-haiku-4-5-20251001` with a small amount of API credit. These
+numbers are from that run (`eval/results.json` / `eval/report.md`), not arithmetic:
 
-- **No live latency numbers.** `npm run eval` measures wall-clock time from request
-  to full answer automatically once you add a key; I haven't run it, so I'm not
-  going to state a latency target here - the brief specifically asks for measurements,
-  not promises.
-- **No live cost numbers either**, but I can give a grounded *estimate*: the two
-  fixture manuals' extracted text is 4,425 characters (~1,100 tokens at a rough
-  4 chars/token) plus a ~230-token instruction block. On Haiku 4.5, a first
-  question in a conversation (cache write on ~1,330 prompt tokens + a short
-  question + a ~150-250 token structured answer) comes out to roughly
-  **$0.002-0.003**; a cached follow-up roughly **$0.001-0.0015**. This is arithmetic
-  on published prices, not a measurement - `npm run eval` will give you the real
-  number in under a minute once you add a key.
-- **Ingestion cost is $0**, not an estimate - ingestion never calls a paid API.
+- **Factual accuracy: 6/6 (100%)**. **Citation accuracy: 6/6 (100%)** - every
+  returned quote was independently verified as an actual substring of the
+  extracted text on the page the model claimed, not just self-reported.
+- **Question → full answer latency**: median **3.6 s**, min **1.1 s**, max **8.5 s**
+  across the 8 turns (wall-clock, request sent to full JSON answer received;
+  doesn't include browser TTS start, which is small). The high end was the
+  longest, most detail-heavy answer (full setup-steps enumeration); short factual
+  or absent-fact answers were closer to 1-2 s.
+- **Cost per question: $0.0018-0.0040**, average **$0.00285** across the 6 graded
+  questions - in the same ballpark as the pre-run estimate below, which undershot
+  slightly (real system-prompt + instruction tokens ran a bit higher than the
+  rough chars/4 approximation). **Full 8-turn session: $0.0227.**
+- **Ingestion: $0**, confirmed - 10-27 ms per manual, no LLM call in that path.
 
-If you add a key and run `npm run eval`, it overwrites `eval/results.json` and
-`eval/report.md` with real numbers (accuracy, latency, and actual `$` cost from
-Anthropic's own usage figures) that you're welcome to use in place of this section.
+My original *pre-run estimate* (methodology, for comparison): the two fixture
+manuals' extracted text is 4,425 characters (~1,100 tokens at a rough 4
+chars/token) plus a ~230-token instruction block, giving ~$0.002-0.003/question
+on Haiku 4.5 - close to, but a bit under, what was actually measured.
+
+One real bug surfaced by this run, worth reporting rather than hiding: my first
+pass of the eval's grading logic flagged the post-replacement question (#6) as a
+factual *failure* because the model's answer mentioned "10 liters" - but it did so
+correctly, as historical context ("13 liters, increased from 10 liters in the
+2027-B revision"), quoting the v2 manual's own page 3 text verbatim. The bug was
+in my test's blunt `mustNotMention` substring check, not in the app. Fixed in
+`eval/run-eval.mjs` (see git history) and documented in
+`eval/questions.json`/`DELIVERY_NOTES.md`.
 
 ## The test manual and test set
 
