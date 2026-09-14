@@ -55,6 +55,23 @@ delivery, not left in the code:
    `eval/questions.json`, rather than quietly loosening the grading until it
    passed.
 
+**A real citation-verification catch, not a bug**: manually running the same six
+questions through the actual browser UI (voice + typed, with the applicant's own
+key) reproduced the eval's 6/6 factual accuracy, but on question 3's follow-up
+("And what about the other model?") the citation card was flagged **"quote NOT
+found verbatim on that page."** The spoken answer was entirely correct; the model
+quoted the D400's setup steps as flowing prose and dropped the source PDF's "1.",
+"2.", "3." list markers, so the quote was no longer a byte-for-byte substring of
+the extracted page text. The identical question, run moments earlier in the
+scripted eval, had the model keep the numbering and pass verification cleanly -
+same prompt, different token-level quoting choice. This is the citation-accuracy
+metric doing exactly what it's for: catching a case where "the answer is right"
+and "the quote is verified" briefly diverged, on live, unscripted use rather than
+the curated eval run. Nothing to fix here - it's the intended failure mode the
+verification layer exists to surface (see README "Citations are verified, not
+trusted"), and it argues for treating citation accuracy as its own metric rather
+than inferring it from factual correctness, exactly as the brief asks.
+
 None of these three would have been visible from reading the code alone; all
 three needed an actual compile, run, or live model call to surface - which is
 the concrete case for not skipping that step even under time pressure.
