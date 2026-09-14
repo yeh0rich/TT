@@ -1,0 +1,109 @@
+{
+  "_note": "Expected answers and pages recorded BEFORE running the eval, from the fixture manuals' own authored text (see scripts/generate-fixtures.mjs). Six graded questions per the brief: direct fact, comparison, follow-up, exception, absent fact, post-replacement.",
+  "manuals": {
+    "d200_v1": { "title": "TerraDry D200", "file": "fixtures/terradry-d200-v1.pdf" },
+    "d200_v2": { "title": "TerraDry D200", "file": "fixtures/terradry-d200-v2-revised.pdf" },
+    "d400_v1": { "title": "TerraDry D400", "file": "fixtures/terradry-d400-v1.pdf" }
+  },
+  "turns": [
+    {
+      "id": "q1_direct_fact",
+      "graded": true,
+      "conversation": "fresh",
+      "manuals": ["d200_v1", "d400_v1"],
+      "question": "What is the maximum coverage area of the D200?",
+      "expected": {
+        "found": true,
+        "mustMention": ["45"],
+        "citations": [{ "manual": "TerraDry D200", "page": 3 }]
+      }
+    },
+    {
+      "id": "q2_comparison",
+      "graded": true,
+      "conversation": "fresh",
+      "manuals": ["d200_v1", "d400_v1"],
+      "question": "How does the maximum coverage area of the D200 compare to the D400?",
+      "expected": {
+        "found": true,
+        "mustMention": ["45", "90"],
+        "citations": [
+          { "manual": "TerraDry D200", "page": 3 },
+          { "manual": "TerraDry D400", "page": 3 }
+        ]
+      }
+    },
+    {
+      "id": "q3a_setup_context",
+      "graded": false,
+      "conversation": "followup",
+      "manuals": ["d200_v1", "d400_v1"],
+      "question": "What are the setup steps for the D200?",
+      "expected": {
+        "found": true,
+        "mustMention": ["220", "single-phase"],
+        "citations": [{ "manual": "TerraDry D200", "page": 2 }]
+      }
+    },
+    {
+      "id": "q3b_followup",
+      "graded": true,
+      "conversation": "followup",
+      "question": "And what about the other model?",
+      "expected": {
+        "found": true,
+        "mustMention": ["380", "three-phase"],
+        "citations": [{ "manual": "TerraDry D400", "page": 2 }]
+      }
+    },
+    {
+      "id": "q4_exception",
+      "graded": true,
+      "conversation": "fresh",
+      "manuals": ["d200_v1", "d400_v1"],
+      "question": "Can the D200 be used at an ambient temperature of 0 degrees Celsius?",
+      "expected": {
+        "found": true,
+        "mustMention": ["LTK-1"],
+        "citations": [{ "manual": "TerraDry D200", "page": 4 }]
+      }
+    },
+    {
+      "id": "q5_absent_fact",
+      "graded": true,
+      "conversation": "fresh",
+      "manuals": ["d200_v1", "d400_v1"],
+      "question": "What is the warranty period for the D400?",
+      "expected": {
+        "found": false,
+        "mustMention": [],
+        "citations": []
+      }
+    },
+    {
+      "id": "q6a_before_replace",
+      "graded": false,
+      "conversation": "replace",
+      "manuals": ["d200_v1"],
+      "question": "What is the internal tank capacity of the D200?",
+      "expected": {
+        "found": true,
+        "mustMention": ["10"],
+        "citations": [{ "manual": "TerraDry D200", "page": 3 }]
+      }
+    },
+    {
+      "id": "q6b_after_replace",
+      "graded": true,
+      "conversation": "replace",
+      "replaceManualsWith": ["d200_v2"],
+      "question": "What is the internal tank capacity of the D200?",
+      "expected": {
+        "found": true,
+        "mustMention": ["13"],
+        "mustNotMention": ["10 liters"],
+        "citations": [{ "manual": "TerraDry D200", "page": 3 }]
+      }
+    }
+  ]
+}
