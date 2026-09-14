@@ -30,23 +30,34 @@ initially mis-scored it.
 
 ## What failed
 
-Three real bugs were found and fixed during this build, all caught before
+Four real bugs were found and fixed during this build, all caught before
 delivery, not left in the code:
 
-1. **SDK/API-shape errors caught by the type checker.** My first draft of
+1. **PDF upload silently broken on the deployed (Vercel) instance only**, not
+   locally. `pdfjs-dist` resolves its worker file through a computed variable
+   (`GlobalWorkerOptions.workerSrc`), not a literal import string, so Vercel's
+   static file-tracing couldn't see the dependency and omitted the 2.3MB
+   worker file from the serverless function bundle - uploading a PDF on the
+   live URL failed with `Cannot find module '.../pdf.worker.mjs'` while the
+   exact same code worked fine in local dev. Found by actually `curl`-ing the
+   deployed `/api/ingest` endpoint after deployment rather than assuming
+   "deployed" meant "working" - fixed with an explicit
+   `outputFileTracingIncludes` entry in `next.config.mjs` forcing that file
+   into the bundle, then re-verified with the same `curl` call.
+2. **SDK/API-shape errors caught by the type checker.** My first draft of
    `lib/anthropic.ts` used `@anthropic-ai/sdk/helpers/beta/zod` and
    `import { z } from "zod"` (v3 API). `npx tsc --noEmit` failed both:
    the currently-installed SDK's Zod structured-output helper lives at
    `@anthropic-ai/sdk/helpers/zod` (non-beta) and expects a `zod/v4`-shaped
    schema, not v3. Fixed by inspecting the installed package's own `.d.ts` files
    rather than guessing from memory, then re-running `tsc` to confirm.
-2. **A React hydration mismatch** in the voice-support check (`typeof window !==
+3. **A React hydration mismatch** in the voice-support check (`typeof window !==
    "undefined"` inside a `useState` initializer renders differently on the server
    vs. the client's first paint). Found with a Playwright smoke test that loaded
    the page and asserted zero console errors; fixed by moving the check into a
    `useEffect` so both the server and the client's first render agree (`false`),
    then updating once mounted.
-3. **A false failure in my own eval grading logic**, found on the real run: the
+4. **A false failure in my own eval grading logic**, found on the real run: the
    harness flagged question 6 (post-replacement) as a factual failure because the
    model's answer contained the substring "10 liters". Looking at the actual
    answer, the model was right - "13 liters, increased from 10 liters in the
@@ -75,15 +86,19 @@ verification layer exists to surface (see README "Citations are verified, not
 trusted"), and it argues for treating citation accuracy as its own metric rather
 than inferring it from factual correctness, exactly as the brief asks.
 
-None of these three would have been visible from reading the code alone; all
-three needed an actual compile, run, or live model call to surface - which is
-the concrete case for not skipping that step even under time pressure.
+None of these four would have been visible from reading the code alone; all
+four needed an actual deploy, compile, run, or live model call to surface -
+which is the concrete case for not skipping that step even under time
+pressure. The deployment bug in particular is the clearest example: the code
+was correct and passed locally; only hitting the actual deployed URL revealed
+it.
 
 **What's genuinely unfinished:**
 
-- Public deployment was being set up separately (Vercel) and is not confirmed
-  complete as of this note - see the submission form for whatever URL was
-  ultimately included.
+- Public deployment (Vercel, at the URL on the submission form) is live and
+  was verified end-to-end after the fact - PDF upload, question answering,
+  and citation verification all confirmed working against the deployed URL,
+  not just localhost.
 - Only one live eval run was performed (Haiku 4.5, one pass through the six
   questions). I have no data on run-to-run variance, and did not test
   `claude-sonnet-5` live.
@@ -116,7 +131,7 @@ like-for-like number.
   speech engines, chosen specifically to keep voice I/O at $0 marginal cost (see
   README "Model choice and cost model").
 
-**Two examples of how I checked the model's (Claude Code's) output:**
+**Three examples of how I checked the model's (Claude Code's) output:**
 
 1. After writing the PDF-ingestion route, I didn't assume it worked - I started
    the real dev server and `curl`'d all three fixture PDFs through `/api/ingest`,
@@ -130,6 +145,16 @@ like-for-like number.
    red/green result without reading the underlying transcript would have produced
    a false claim in this document (either "the model has a bug" or, worse, a
    quietly loosened check to force a pass).
+3. After deploying to Vercel, I didn't assume "homepage loads" meant "the app
+   works" - I `curl`'d the live `/api/ingest` and `/api/ask` endpoints directly
+   against the deployed URL. The homepage returned 200 OK, but PDF upload
+   failed with a worker-module-not-found error that never appeared locally
+   (a Vercel-specific serverless bundling gap), and separately, question
+   answering failed until the API key was actually set in Vercel's own
+   environment variables, not just locally. Both were real, deployment-only
+   failures that "it looks fine in the browser" would not have reliably
+   caught, and both were fixed and re-verified with the same direct request
+   before calling the deployment done.
 
 ## Speed and cost measurement approach
 
@@ -145,10 +170,10 @@ not guessed.
 
 ## Hosting cost (separate from per-operation cost)
 
-Not deployed in this delivery. For reference: this is a stateless Next.js app (no
-database) that would fit comfortably on a free-tier host (e.g. Vercel's free tier)
-for demo-level traffic, i.e. $0 fixed hosting cost at this scale; a small
-always-on VM would run roughly $5-6/month if self-hosting were preferred instead.
-Free-tier hosting is not zero *operating* cost in the sense the brief means -
-Anthropic API usage is billed per the per-question estimate above regardless of
-where the app is hosted.
+Deployed on Vercel's free tier for this delivery - $0 fixed hosting cost at
+demo-level traffic. This is a stateless Next.js app (no database), so it fits
+comfortably within the free tier's limits; a small always-on VM would run
+roughly $5-6/month if self-hosting were preferred instead. Free-tier hosting
+is not zero *operating* cost in the sense the brief means - Anthropic API
+usage is billed per the per-question estimate above regardless of where the
+app is hosted.
