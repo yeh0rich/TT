@@ -41,6 +41,27 @@ function MicGlyph() {
     </svg>
   );
 }
+function ChatMarkIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+    </svg>
+  );
+}
+function ChevronLeftIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  );
+}
+function ChevronRightIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18l6-6-6-6" />
+    </svg>
+  );
+}
 
 const SUGGESTIONS = [
   "What are the setup steps?",
@@ -84,6 +105,10 @@ export default function Home() {
   const recognitionRef = useRef<InstanceType<NonNullable<Window["SpeechRecognition"]>> | null>(null);
   const historyRef = useRef<ChatTurn[]>([]);
   historyRef.current = history;
+  const suggestionScrollRef = useRef<HTMLDivElement>(null);
+  const scrollSuggestions = useCallback((dir: 1 | -1) => {
+    suggestionScrollRef.current?.scrollBy({ left: dir * 180, behavior: "smooth" });
+  }, []);
 
   const totalPages = useMemo(
     () => SLOTS.reduce((sum, s) => sum + (manuals[s]?.pages.length ?? 0), 0),
@@ -242,7 +267,7 @@ export default function Home() {
       <header className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <span className="app-mark size-header">
-            <MicGlyph />
+            <ChatMarkIcon />
           </span>
           <h1 className="text-lg font-semibold">Ask Your Documents by Voice</h1>
         </div>
@@ -310,25 +335,6 @@ export default function Home() {
       {error && <div className="banner p-2.5 text-sm">{error}</div>}
 
       <section className="flex flex-col gap-4">
-        {history.length === 0 && (
-          <div className="msg-enter flex flex-col gap-2 py-6">
-            <div className="flex items-center gap-2.5">
-              <span className="app-mark size-avatar">
-                <MicGlyph />
-              </span>
-              <p className="text-sm" style={{ color: "var(--ink-dim)" }}>
-                Upload a manual, then ask something like:
-              </p>
-            </div>
-            <div className="ml-[34px] flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-              {SUGGESTIONS.map((s) => (
-                <button key={s} type="button" className="suggestion-chip" onClick={() => void handleAsk(s)}>
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
         {history.map((turn, i) => (
           <div key={i} className={`msg-enter ${turn.role === "user" ? "self-end text-right" : "flex w-full gap-2.5"}`}>
             {turn.role === "user" ? (
@@ -359,6 +365,23 @@ export default function Home() {
       >
         <div className="glow-ring" />
         <section className="composer glow-surface flex flex-col gap-2 p-3">
+          {history.length === 0 && (
+            <div className="suggestion-bar">
+              <button type="button" className="suggestion-nav" onClick={() => scrollSuggestions(-1)} aria-label="Scroll suggestions left">
+                <ChevronLeftIcon />
+              </button>
+              <div className="suggestion-scroll" ref={suggestionScrollRef}>
+                {SUGGESTIONS.map((s) => (
+                  <button key={s} type="button" className="suggestion-chip" onClick={() => void handleAsk(s)}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+              <button type="button" className="suggestion-nav" onClick={() => scrollSuggestions(1)} aria-label="Scroll suggestions right">
+                <ChevronRightIcon />
+              </button>
+            </div>
+          )}
           <div className="flex items-center gap-3">
             <button
               onClick={toggleRecording}

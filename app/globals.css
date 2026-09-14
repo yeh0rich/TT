@@ -262,16 +262,56 @@ body {
 .app-mark.size-avatar { width: 26px; height: 26px; border-radius: 8px; margin-top: 2px; }
 .app-mark.size-avatar svg { width: 14px; height: 14px; }
 
-/* ---------- quick-start suggestions (empty state) ---------- */
+/* ---------- quick-start suggestions strip (in the composer) ---------- */
+/* A horizontally-scrolling row with fixed nav buttons on each side. The row
+   is masked to fade out under those buttons, so a long chip disappears
+   gradually into the edge instead of being clipped hard against it - the
+   buttons stay put and fully visible regardless of scroll position. */
+
+.suggestion-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.suggestion-nav {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--paper-raised);
+  color: var(--ink-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+.suggestion-nav svg { width: 13px; height: 13px; }
+.suggestion-nav:hover { border-color: var(--accent); color: var(--accent-strong); }
+
+.suggestion-scroll {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  mask-image: linear-gradient(to right, transparent, black 18px, black calc(100% - 18px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 18px, black calc(100% - 18px), transparent);
+  padding: 0 2px;
+}
+.suggestion-scroll::-webkit-scrollbar { display: none; }
 
 .suggestion-chip {
-  text-align: left;
-  padding: 10px 14px;
-  border-radius: 12px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 7px 13px;
+  border-radius: 999px;
   border: 1px solid var(--line);
   background: var(--paper-raised);
   color: var(--ink);
-  font-size: 13px;
+  font-size: 12.5px;
   font-family: inherit;
   cursor: pointer;
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 150ms ease;
