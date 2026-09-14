@@ -188,8 +188,11 @@ export default function Home() {
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-8">
       <header>
-        <h1 className="text-2xl font-semibold">Ask Your Documents by Voice</h1>
-        <p className="mt-1 text-sm text-gray-600">
+        <div className="eyebrow mb-1">Voice · grounded in your document</div>
+        <h1 className="text-2xl font-semibold" style={{ textWrap: "balance" }}>
+          Ask Your Documents by Voice
+        </h1>
+        <p className="mt-1 text-sm" style={{ color: "var(--ink-dim)" }}>
           Upload up to two equipment manuals (text-based PDF, 10 pages total), then ask questions by
           voice. Answers are spoken aloud and grounded in a visible quote + page reference from the
           document you uploaded.
@@ -198,28 +201,30 @@ export default function Home() {
 
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {SLOTS.map((slot) => (
-          <div key={slot} className="rounded-lg border border-gray-200 bg-white p-3">
-            <div className="mb-2 text-xs font-medium uppercase text-gray-500">Manual {slot}</div>
+          <div key={slot} className="panel p-3">
+            <div className="eyebrow mb-2">Manual {slot}</div>
             {manuals[slot] ? (
               <div className="text-sm">
                 <div className="font-medium">{manuals[slot]!.title}</div>
-                <div className="text-xs text-gray-500">
+                <div className="mono text-xs" style={{ color: "var(--ink-dim)" }}>
                   {manuals[slot]!.pages.length} page(s) · ingested in {manuals[slot]!.ingestMs} ms
                 </div>
               </div>
             ) : (
-              <div className="text-sm text-gray-400">No manual uploaded</div>
+              <div className="text-sm italic" style={{ color: "var(--ink-dim)" }}>
+                No manual uploaded
+              </div>
             )}
             {!manuals[slot] && (
               <input
                 type="text"
                 placeholder="Name it, e.g. TerraDry D200 (optional)"
-                className="mt-2 w-full rounded-md border border-gray-300 px-2 py-1 text-xs"
+                className="field mt-2 w-full px-2 py-1.5 text-xs"
                 value={manualNames[slot]}
                 onChange={(e) => setManualNames((n) => ({ ...n, [slot]: e.target.value }))}
               />
             )}
-            <label className="mt-2 inline-block cursor-pointer rounded-md border border-gray-300 px-2 py-1 text-xs hover:bg-gray-50">
+            <label className="btn btn-ghost mt-2 inline-block cursor-pointer rounded-md px-2.5 py-1.5 text-xs">
               {ingestingSlot === slot ? "Uploading…" : manuals[slot] ? "Replace file" : "Upload PDF"}
               <input
                 type="file"
@@ -238,41 +243,61 @@ export default function Home() {
       </section>
 
       {totalPages > MAX_PAGES_TOTAL && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700">
+        <div className="banner p-2.5 text-sm">
           Total pages across both manuals ({totalPages}) exceeds this prototype&apos;s {MAX_PAGES_TOTAL}-page
           limit. Replace one with a shorter document before asking.
         </div>
       )}
-      {error && <div className="rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700">{error}</div>}
+      {error && <div className="banner p-2.5 text-sm">{error}</div>}
 
       <section className="flex flex-col gap-3">
         {history.map((turn, i) => (
-          <div key={i} className={turn.role === "user" ? "self-end text-right" : "self-start"}>
+          <div
+            key={i}
+            className={`msg-enter ${turn.role === "user" ? "self-end text-right" : "self-start"}`}
+          >
             {turn.role === "user" ? (
-              <div className="inline-block rounded-lg bg-gray-900 px-3 py-2 text-sm text-white">{turn.text}</div>
+              <div className="bubble-user inline-block px-3.5 py-2.5 text-sm">{turn.text}</div>
             ) : turn.answer ? (
               <AnswerCard answer={turn.answer} />
             ) : (
-              <div className="text-sm text-gray-500">{turn.text}</div>
+              <div className="text-sm" style={{ color: "var(--ink-dim)" }}>
+                {turn.text}
+              </div>
             )}
           </div>
         ))}
-        {isAsking && <div className="text-sm text-gray-400">Thinking…</div>}
+        {isAsking && (
+          <div className="msg-enter self-start">
+            <div className="thinking-chip">
+              <div className="thinking-glow" />
+              <div className="thinking-inner">
+                <span className="thinking-dot" style={{ animationDelay: "0ms" }} />
+                <span className="thinking-dot" style={{ animationDelay: "150ms" }} />
+                <span className="thinking-dot" style={{ animationDelay: "300ms" }} />
+                <span>Claude is reading the manual…</span>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
-      <section className="sticky bottom-4 flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+      <section className="composer panel flex flex-col gap-2 p-3">
         <div className="flex items-center gap-3">
           <button
             onClick={toggleRecording}
             disabled={isAsking}
-            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white ${
-              isRecording ? "bg-red-600 animate-pulse" : "bg-gray-900"
-            } disabled:opacity-50`}
+            className={`mic-btn ${isRecording ? "recording" : ""}`}
             aria-label={isRecording ? "Stop recording" : "Ask by voice"}
           >
-            🎤
+            <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <rect x="9" y="2" width="6" height="12" rx="3" />
+              <path d="M5 10a7 7 0 0 0 14 0" />
+              <line x1="12" y1="19" x2="12" y2="22" />
+              <line x1="8" y1="22" x2="16" y2="22" />
+            </svg>
           </button>
-          <div className="min-h-[1.5rem] flex-1 text-sm text-gray-500">
+          <div className="min-h-[1.5rem] flex-1 text-sm" style={{ color: "var(--ink-dim)" }}>
             {isRecording ? liveTranscript || "Listening…" : speechSupported ? "Tap the mic and ask a question" : "Voice input unavailable in this browser - type your question below"}
           </div>
         </div>
@@ -284,7 +309,7 @@ export default function Home() {
           }}
         >
           <input
-            className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="field flex-1 px-3 py-2 text-sm"
             placeholder="Or type a question…"
             value={typed}
             onChange={(e) => setTyped(e.target.value)}
@@ -293,7 +318,7 @@ export default function Home() {
           <button
             type="submit"
             disabled={isAsking || !typed.trim()}
-            className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white disabled:opacity-50"
+            className="btn btn-primary rounded-md px-4 py-2 text-sm"
           >
             Ask
           </button>
