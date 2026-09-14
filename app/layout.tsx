@@ -28,6 +28,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
+      <head>
+        {/* Applies a saved theme choice before first paint, so there's no flash
+            of the wrong theme while React hydrates. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();",
+          }}
+        />
+      </head>
       <body>{children}</body>
     </html>
   );

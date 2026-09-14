@@ -2,7 +2,7 @@ import type { AskAnswer } from "@/lib/types";
 
 export function AnswerCard({ answer }: { answer: AskAnswer }) {
   return (
-    <div className={`card-answer p-3.5 text-sm ${answer.found ? "" : "notfound"}`}>
+    <div className="answer-block text-sm">
       <span className={`pill mb-1.5 inline-block px-2 py-0.5 ${answer.found ? "pill-found" : "pill-notfound"}`}>
         {answer.found ? "found in manual" : "not in manual"}
       </span>

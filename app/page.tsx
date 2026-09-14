@@ -16,9 +16,24 @@ interface ManualSlot {
   ingestMs: number;
 }
 
+function SunIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </svg>
+  );
+}
+function MoonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />
+    </svg>
+  );
+}
+
 export default function Home() {
   const [manuals, setManuals] = useState<Record<SlotId, ManualSlot | null>>({ A: null, B: null });
-  const [manualNames, setManualNames] = useState<Record<SlotId, string>>({ A: "", B: "" });
   const [ingestingSlot, setIngestingSlot] = useState<SlotId | null>(null);
   const [history, setHistory] = useState<ChatTurn[]>([]);
   const [typed, setTyped] = useState("");
@@ -32,9 +47,23 @@ export default function Home() {
   // Starts false on both server and first client render to avoid a hydration
   // mismatch, then updates immediately after mount once `window` is available.
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [isDark, setIsDark] = useState(false);
   useEffect(() => {
     setSpeechSupported(Boolean(window.SpeechRecognition || window.webkitSpeechRecognition));
+    const applied = document.documentElement.getAttribute("data-theme");
+    setIsDark(applied ? applied === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches);
   }, []);
+
+  const toggleTheme = useCallback(() => {
+    const next = isDark ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try {
+      localStorage.setItem("theme", next);
+    } catch {
+      // ignore - theme just won't persist across reloads
+    }
+    setIsDark(next === "dark");
+  }, [isDark]);
 
   const recognitionRef = useRef<InstanceType<NonNullable<Window["SpeechRecognition"]>> | null>(null);
   const historyRef = useRef<ChatTurn[]>([]);
@@ -150,34 +179,41 @@ export default function Home() {
     recognition.start();
   }, [isRecording, handleAsk]);
 
-  const handleUpload = useCallback(async (slot: SlotId, file: File) => {
-    const existing = manuals[slot];
-    if (existing) {
-      const ok = window.confirm(
-        `Replace previously uploaded manual "${existing.title}" with "${file.name}"?\n` +
-          "The next question will be answered from the new document instead.",
-      );
-      if (!ok) return;
-    }
-    setError(null);
-    setIngestingSlot(slot);
-    try {
-      const form = new FormData();
-      form.append("file", file);
-      if (manualNames[slot].trim()) form.append("title", manualNames[slot].trim());
-      const res = await fetch("/api/ingest", { method: "POST", body: form });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Upload failed");
-      setManuals((m) => ({
-        ...m,
-        [slot]: { title: data.title, fileName: data.fileName, pages: data.pages, ingestMs: data.ingestMs },
-      }));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed");
-    } finally {
-      setIngestingSlot(null);
-    }
-  }, [manuals, manualNames]);
+  const handleUpload = useCallback(
+    async (slot: SlotId, file: File) => {
+      const existing = manuals[slot];
+      if (existing) {
+        const ok = window.confirm(
+          `Replace previously uploaded manual "${existing.title}" with "${file.name}"?\n` +
+            "The next question will be answered from the new document instead.",
+        );
+        if (!ok) return;
+      }
+      const defaultName = file.name.replace(/\.pdf$/i, "");
+      const typed = window.prompt("Name this manual (optional):", defaultName);
+      const name = typed && typed.trim() ? typed.trim() : defaultName;
+
+      setError(null);
+      setIngestingSlot(slot);
+      try {
+        const form = new FormData();
+        form.append("file", file);
+        form.append("title", name);
+        const res = await fetch("/api/ingest", { method: "POST", body: form });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Upload failed");
+        setManuals((m) => ({
+          ...m,
+          [slot]: { title: data.title, fileName: data.fileName, pages: data.pages, ingestMs: data.ingestMs },
+        }));
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Upload failed");
+      } finally {
+        setIngestingSlot(null);
+      }
+    },
+    [manuals],
+  );
 
   const ingestMsBySlot = useMemo(() => {
     const out: Record<string, number> = {};
@@ -186,46 +222,30 @@ export default function Home() {
   }, [manuals]);
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-8">
-      <header>
-        <div className="eyebrow mb-1">Voice · grounded in your document</div>
-        <h1 className="text-2xl font-semibold" style={{ textWrap: "balance" }}>
-          Ask Your Documents by Voice
-        </h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--ink-dim)" }}>
-          Upload up to two equipment manuals (text-based PDF, 10 pages total), then ask questions by
-          voice. Answers are spoken aloud and grounded in a visible quote + page reference from the
-          document you uploaded.
-        </p>
+    <main className="mx-auto flex max-w-2xl flex-col gap-5 px-4 py-6">
+      <header className="flex items-center justify-between gap-3">
+        <h1 className="text-lg font-semibold">Ask Your Documents by Voice</h1>
+        <button
+          className="theme-switch"
+          data-theme-on={isDark}
+          onClick={toggleTheme}
+          aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          <SunIcon />
+          <MoonIcon />
+          <span className="theme-switch-thumb" />
+        </button>
       </header>
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {SLOTS.map((slot) => (
-          <div key={slot} className="panel p-3">
-            <div className="eyebrow mb-2">Manual {slot}</div>
-            {manuals[slot] ? (
-              <div className="text-sm">
-                <div className="font-medium">{manuals[slot]!.title}</div>
-                <div className="mono text-xs" style={{ color: "var(--ink-dim)" }}>
-                  {manuals[slot]!.pages.length} page(s) · ingested in {manuals[slot]!.ingestMs} ms
-                </div>
-              </div>
-            ) : (
-              <div className="text-sm italic" style={{ color: "var(--ink-dim)" }}>
-                No manual uploaded
-              </div>
-            )}
-            {!manuals[slot] && (
-              <input
-                type="text"
-                placeholder="Name it, e.g. TerraDry D200 (optional)"
-                className="field mt-2 w-full px-2 py-1.5 text-xs"
-                value={manualNames[slot]}
-                onChange={(e) => setManualNames((n) => ({ ...n, [slot]: e.target.value }))}
-              />
-            )}
-            <label className="btn btn-ghost mt-2 inline-block cursor-pointer rounded-md px-2.5 py-1.5 text-xs">
-              {ingestingSlot === slot ? "Uploading…" : manuals[slot] ? "Replace file" : "Upload PDF"}
+      <div className="flex flex-wrap items-center gap-2">
+        {SLOTS.map((slot) =>
+          manuals[slot] ? (
+            <label key={slot} className="manual-chip filled" title="Click to replace this manual">
+              <span className="dot" />
+              <span className="font-medium">{manuals[slot]!.title}</span>
+              <span className="mono" style={{ color: "var(--ink-dim)" }}>
+                {manuals[slot]!.pages.length}p
+              </span>
               <input
                 type="file"
                 accept="application/pdf"
@@ -238,9 +258,27 @@ export default function Home() {
                 }}
               />
             </label>
-          </div>
-        ))}
-      </section>
+          ) : (
+            <label key={slot} className="manual-chip empty">
+              <span>{ingestingSlot === slot ? "Uploading…" : `+ Add manual ${slot}`}</span>
+              <input
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                disabled={ingestingSlot === slot}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (file) void handleUpload(slot, file);
+                }}
+              />
+            </label>
+          ),
+        )}
+        <span className="mono text-xs" style={{ color: "var(--ink-dim)" }}>
+          up to 2 PDFs, {MAX_PAGES_TOTAL} pages total
+        </span>
+      </div>
 
       {totalPages > MAX_PAGES_TOTAL && (
         <div className="banner p-2.5 text-sm">
@@ -250,11 +288,11 @@ export default function Home() {
       )}
       {error && <div className="banner p-2.5 text-sm">{error}</div>}
 
-      <section className="flex flex-col gap-3">
+      <section className="flex flex-col gap-4">
         {history.map((turn, i) => (
           <div
             key={i}
-            className={`msg-enter ${turn.role === "user" ? "self-end text-right" : "self-start"}`}
+            className={`msg-enter ${turn.role === "user" ? "self-end text-right" : "self-start w-full"}`}
           >
             {turn.role === "user" ? (
               <div className="bubble-user inline-block px-3.5 py-2.5 text-sm">{turn.text}</div>
@@ -267,63 +305,69 @@ export default function Home() {
             )}
           </div>
         ))}
-        {isAsking && (
-          <div className="msg-enter self-start">
-            <div className="thinking-chip">
-              <div className="thinking-glow" />
-              <div className="thinking-inner">
-                <span className="thinking-dot" style={{ animationDelay: "0ms" }} />
-                <span className="thinking-dot" style={{ animationDelay: "150ms" }} />
-                <span className="thinking-dot" style={{ animationDelay: "300ms" }} />
-                <span>Claude is reading the manual…</span>
-              </div>
-            </div>
-          </div>
-        )}
       </section>
 
-      <section className="composer panel flex flex-col gap-2 p-3">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={toggleRecording}
-            disabled={isAsking}
-            className={`mic-btn ${isRecording ? "recording" : ""}`}
-            aria-label={isRecording ? "Stop recording" : "Ask by voice"}
-          >
-            <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-              <rect x="9" y="2" width="6" height="12" rx="3" />
-              <path d="M5 10a7 7 0 0 0 14 0" />
-              <line x1="12" y1="19" x2="12" y2="22" />
-              <line x1="8" y1="22" x2="16" y2="22" />
-            </svg>
-          </button>
-          <div className="min-h-[1.5rem] flex-1 text-sm" style={{ color: "var(--ink-dim)" }}>
-            {isRecording ? liveTranscript || "Listening…" : speechSupported ? "Tap the mic and ask a question" : "Voice input unavailable in this browser - type your question below"}
+      <div
+        className={`glow-wrap ${isAsking ? "active" : ""}`}
+        style={{ position: "sticky", bottom: 14, borderRadius: 26 }}
+      >
+        <div className="glow-ring" />
+        <section className="composer glow-surface flex flex-col gap-2 p-3">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleRecording}
+              disabled={isAsking}
+              className={`mic-btn ${isRecording ? "recording" : ""}`}
+              aria-label={isRecording ? "Stop recording" : "Ask by voice"}
+            >
+              <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="2" width="6" height="12" rx="3" />
+                <path d="M5 10a7 7 0 0 0 14 0" />
+                <line x1="12" y1="19" x2="12" y2="22" />
+                <line x1="8" y1="22" x2="16" y2="22" />
+              </svg>
+            </button>
+            <div className="flex min-h-[1.5rem] flex-1 items-center gap-2 text-sm" style={{ color: "var(--ink-dim)" }}>
+              {isAsking ? (
+                <>
+                  <span className="thinking-dot" style={{ animationDelay: "0ms" }} />
+                  <span className="thinking-dot" style={{ animationDelay: "150ms" }} />
+                  <span className="thinking-dot" style={{ animationDelay: "300ms" }} />
+                  <span>Claude is reading the manual…</span>
+                </>
+              ) : isRecording ? (
+                liveTranscript || "Listening…"
+              ) : speechSupported ? (
+                "Tap the mic and ask a question"
+              ) : (
+                "Voice input unavailable in this browser - type your question below"
+              )}
+            </div>
           </div>
-        </div>
-        <form
-          className="flex gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void handleAsk(typed);
-          }}
-        >
-          <input
-            className="field flex-1 px-3 py-2 text-sm"
-            placeholder="Or type a question…"
-            value={typed}
-            onChange={(e) => setTyped(e.target.value)}
-            disabled={isAsking}
-          />
-          <button
-            type="submit"
-            disabled={isAsking || !typed.trim()}
-            className="btn btn-primary rounded-md px-4 py-2 text-sm"
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void handleAsk(typed);
+            }}
           >
-            Ask
-          </button>
-        </form>
-      </section>
+            <input
+              className="field flex-1 px-3 py-2 text-sm"
+              placeholder="Or type a question…"
+              value={typed}
+              onChange={(e) => setTyped(e.target.value)}
+              disabled={isAsking}
+            />
+            <button
+              type="submit"
+              disabled={isAsking || !typed.trim()}
+              className="btn btn-primary rounded-full px-4 py-2 text-sm"
+            >
+              Ask
+            </button>
+          </form>
+        </section>
+      </div>
 
       <MetricsPanel
         ingestMs={ingestMsBySlot}
