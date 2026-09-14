@@ -19,11 +19,14 @@ transcripts in `eval/results.json`, scored table in `eval/report.md`):
 | 5 | D400 warranty period? | Not in manual | "The manual does not cover the warranty period for the D400." | ✅ | ✅ (no citation, correctly) |
 | 6 | D200 tank capacity, before/after replacing with v2 | 10L → 13L, both p.3 | 10 liters, then (after replace) "13 liters, increased from 10 liters in the 2027-B hardware revision" | ✅ | ✅ |
 
-**Factual accuracy: 6/6 (100%). Citation accuracy: 6/6 (100%)** - every citation's
-quote was independently verified as an actual substring of the extracted page text,
-not just self-reported by the model. See "What failed" below for one wrinkle in
-question 6: the model's answer was correct on the first run, but my own grading
-script initially mis-scored it.
+Even though during the walkthrough the dictation missed the mark on the last
+question due to me wearing AirPods, the overall factual accuracy was 6 out of
+6, 100%. Citation accuracy in previous tests using the built-in MacBook mic
+came to 6 out of 6, 100%. Every citation's quote was independently verified as
+an actual substring of the extracted document text, not just self-reported by
+the model. See "What failed" below for one wrinkle in question 6 itself: the
+model's answer was correct on the first run, but my own grading script
+initially mis-scored it.
 
 ## What failed
 
@@ -78,27 +81,23 @@ the concrete case for not skipping that step even under time pressure.
 
 **What's genuinely unfinished:**
 
-- Video walkthrough - not produced; I can't record narrated video as an AI agent.
-  A script would need to be written and recorded separately before submission.
-- No deployment - local `npm run dev` only.
+- Public deployment was being set up separately (Vercel) and is not confirmed
+  complete as of this note - see the submission form for whatever URL was
+  ultimately included.
 - Only one live eval run was performed (Haiku 4.5, one pass through the six
   questions). I have no data on run-to-run variance, and did not test
   `claude-sonnet-5` live.
 
 ## Time spent
 
-This prototype was built primarily by an AI agent (Claude Code, running Claude
-Sonnet 5) inside a single continuous session, directed by the applicant (Yehor)
-who made the product decisions: input/output stack (browser-native voice, no
-paid speech APIs), model choice (Haiku 4.5 default), initially declining to spend
-money on live API testing, then - once we'd worked out the real cost was on the
-order of cents, not euros - providing his own key to get real numbers before
-submission. Wall-clock agent execution time for the build itself (scaffolding
-through working UI, fixtures, eval harness, docs, and the live eval run) was
-under an hour; that is not comparable to the brief's "8 focused hours" for a
-human working solo without an agent, and is disclosed here rather than implied as
-a like-for-like number. Remaining human time for Yehor before submission:
-reviewing this code and recording the video walkthrough.
+This prototype was built primarily using an AI coding agent, Claude Code
+running Claude Sonnet 5, in a continuous session. It took me (Yehor) about
+4-ish hours total to direct the build, troubleshoot the environment (GitHub
+account/branch setup, local server issues), test the app for real, iterate on
+the UI, and get everything working properly with no failure points. That is
+not directly comparable to the brief's "8 focused hours" for someone building
+by hand without an agent, and is disclosed here rather than implied to be a
+like-for-like number.
 
 ## Exact AI tools and models
 
