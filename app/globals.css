@@ -220,7 +220,7 @@ body {
   flex-shrink: 0;
   width: 44px;
   height: 44px;
-  border-radius: 12px;
+  border-radius: 50%;
   border: none;
   background: var(--mic-bg);
   cursor: pointer;
@@ -275,9 +275,9 @@ body {
 }
 .suggestion-nav {
   flex-shrink: 0;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   border: 1px solid var(--line);
   background: var(--paper-raised);
   color: var(--ink-dim);
@@ -306,8 +306,11 @@ body {
 .suggestion-chip {
   flex-shrink: 0;
   white-space: nowrap;
-  padding: 7px 13px;
-  border-radius: 999px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 13px;
+  border-radius: 10px;
   border: 1px solid var(--line);
   background: var(--paper-raised);
   color: var(--ink);
