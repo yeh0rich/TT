@@ -31,6 +31,22 @@ function MoonIcon() {
     </svg>
   );
 }
+function MicGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="2" width="6" height="12" rx="3" />
+      <path d="M5 10a7 7 0 0 0 14 0" />
+      <line x1="12" y1="19" x2="12" y2="22" />
+      <line x1="8" y1="22" x2="16" y2="22" />
+    </svg>
+  );
+}
+
+const SUGGESTIONS = [
+  "What are the setup steps?",
+  "What are the operating limits?",
+  "Is there an exception to any of the limits?",
+];
 
 export default function Home() {
   const [manuals, setManuals] = useState<Record<SlotId, ManualSlot | null>>({ A: null, B: null });
@@ -224,7 +240,12 @@ export default function Home() {
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-5 px-4 py-6">
       <header className="flex items-center justify-between gap-3">
-        <h1 className="text-lg font-semibold">Ask Your Documents by Voice</h1>
+        <div className="flex items-center gap-2.5">
+          <span className="app-mark size-header">
+            <MicGlyph />
+          </span>
+          <h1 className="text-lg font-semibold">Ask Your Documents by Voice</h1>
+        </div>
         <button
           className="theme-switch"
           data-theme-on={isDark}
@@ -233,7 +254,7 @@ export default function Home() {
         >
           <SunIcon />
           <MoonIcon />
-          <span className="theme-switch-thumb" />
+          <span className="theme-switch-thumb">{isDark ? <MoonIcon /> : <SunIcon />}</span>
         </button>
       </header>
 
@@ -289,19 +310,44 @@ export default function Home() {
       {error && <div className="banner p-2.5 text-sm">{error}</div>}
 
       <section className="flex flex-col gap-4">
+        {history.length === 0 && (
+          <div className="msg-enter flex flex-col gap-2 py-6">
+            <div className="flex items-center gap-2.5">
+              <span className="app-mark size-avatar">
+                <MicGlyph />
+              </span>
+              <p className="text-sm" style={{ color: "var(--ink-dim)" }}>
+                Upload a manual, then ask something like:
+              </p>
+            </div>
+            <div className="ml-[34px] flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              {SUGGESTIONS.map((s) => (
+                <button key={s} type="button" className="suggestion-chip" onClick={() => void handleAsk(s)}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {history.map((turn, i) => (
-          <div
-            key={i}
-            className={`msg-enter ${turn.role === "user" ? "self-end text-right" : "self-start w-full"}`}
-          >
+          <div key={i} className={`msg-enter ${turn.role === "user" ? "self-end text-right" : "flex w-full gap-2.5"}`}>
             {turn.role === "user" ? (
               <div className="bubble-user inline-block px-3.5 py-2.5 text-sm">{turn.text}</div>
-            ) : turn.answer ? (
-              <AnswerCard answer={turn.answer} />
             ) : (
-              <div className="text-sm" style={{ color: "var(--ink-dim)" }}>
-                {turn.text}
-              </div>
+              <>
+                <span className="app-mark size-avatar">
+                  <MicGlyph />
+                </span>
+                <div className="min-w-0 flex-1">
+                  {turn.answer ? (
+                    <AnswerCard answer={turn.answer} />
+                  ) : (
+                    <div className="text-sm" style={{ color: "var(--ink-dim)" }}>
+                      {turn.text}
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
         ))}
@@ -320,12 +366,7 @@ export default function Home() {
               className={`mic-btn ${isRecording ? "recording" : ""}`}
               aria-label={isRecording ? "Stop recording" : "Ask by voice"}
             >
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                <rect x="9" y="2" width="6" height="12" rx="3" />
-                <path d="M5 10a7 7 0 0 0 14 0" />
-                <line x1="12" y1="19" x2="12" y2="22" />
-                <line x1="8" y1="22" x2="16" y2="22" />
-              </svg>
+              <MicGlyph />
             </button>
             <div className="flex min-h-[1.5rem] flex-1 items-center gap-2 text-sm" style={{ color: "var(--ink-dim)" }}>
               {isAsking ? (

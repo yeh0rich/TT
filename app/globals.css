@@ -70,7 +70,11 @@
 html, body { height: 100%; }
 
 body {
-  background: var(--paper);
+  background:
+    radial-gradient(circle at 15% -10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 55%),
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent-light) 7%, transparent), transparent 50%),
+    var(--paper);
+  background-attachment: fixed;
   color: var(--ink);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
@@ -122,14 +126,22 @@ body {
 .theme-switch:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-tint); }
 .theme-switch-thumb {
   position: absolute;
+  z-index: 2;
   top: 2px;
   left: 2px;
   width: 22px;
   height: 22px;
   border-radius: 50%;
   background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
 }
+/* The active mode's icon rides on the thumb itself, colored to contrast
+   against its accent fill (paper-raised is white in light mode, near-black
+   in dark mode - the same token, so this flips automatically with the theme). */
+.theme-switch-thumb svg { width: 12px; height: 12px; color: var(--paper-raised); }
 .theme-switch[data-theme-on="true"] .theme-switch-thumb { transform: translateX(24px); }
 
 /* ---------- manual chips ---------- */
@@ -232,6 +244,40 @@ body {
   0%, 100% { box-shadow: 0 0 0 0 rgba(161, 58, 38, 0.4); }
   50% { box-shadow: 0 0 0 10px rgba(161, 58, 38, 0); }
 }
+
+/* Brand mark: the same dark badge + light glyph as the mic button, in two
+   sizes - a small static one in the header, and one per assistant message
+   like a chat avatar. Non-interactive, so no hover/focus states. */
+.app-mark {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: var(--mic-bg);
+}
+.app-mark svg { stroke: var(--mic-fg); }
+.app-mark.size-header { width: 32px; height: 32px; }
+.app-mark.size-header svg { width: 17px; height: 17px; }
+.app-mark.size-avatar { width: 26px; height: 26px; border-radius: 8px; margin-top: 2px; }
+.app-mark.size-avatar svg { width: 14px; height: 14px; }
+
+/* ---------- quick-start suggestions (empty state) ---------- */
+
+.suggestion-chip {
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--paper-raised);
+  color: var(--ink);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 150ms ease;
+}
+.suggestion-chip:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+.suggestion-chip:active { transform: scale(0.98); }
 
 /* ---------- chat transcript ---------- */
 
